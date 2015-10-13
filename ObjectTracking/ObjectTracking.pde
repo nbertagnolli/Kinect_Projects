@@ -12,6 +12,7 @@ PImage currentImage, redImage;  // Images to display
 PImage blobs;  //An initial image to hold blobs
 
 int threshold = 190;
+int filterSize = 2;
 
 boolean irState = false;
 boolean medFilter = false;
@@ -27,11 +28,15 @@ void setup() {
   image(currentImage, 0, 0);
   redImage = currentImage.get();
   redImage = redThreshold(redImage, threshold);
+  
+  if(medFilter) {
+    redImage = medianFilter(redImage, filterSize) ;
+  }
+  
   image(redImage, 640, 0);
   
   blobDetector = new BlobDetection(redImage.width, redImage.height);
-  blobDetector.setThreshold(threshold / 255.0);
-  
+  blobDetector.setThreshold(threshold / 255.0);  
   blobDetector.computeBlobs(redImage.pixels);
   
 }
@@ -66,6 +71,22 @@ float calcRedVal(color c) {
 }
 
 
+PImage medianFilter(PImage img, int size) { 
+  img.loadPixels();
+  PImage temp;
+  int[] tempPixels = img.get().pixels;//ew int[img.width*img.height];
+  
+  for(int y = size; y < img.height - size; y++) {
+    for(int x = size; x < img.width - size; x++) {
+      temp = img.get(x-size, y-size, 2*size+1, 2*size+1);
+      tempPixels[y * img.width + x] = sort(temp.pixels)[(2*(2*size+1)-1) / 2];
+    } 
+  }
+  
+  img.pixels = tempPixels;
+  img.updatePixels();
+  return img; 
+}
 
 
 // ==================================================
@@ -125,7 +146,8 @@ void keyPressed() {
  } else if (key  == 'i') {
    irState = !irState; 
    kinect.enableIR(irState);
+ } else if (key == 'm') {
+   medFilter = !medFilter; 
  }
  
 }
-
