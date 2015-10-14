@@ -24,7 +24,7 @@ boolean irState = false;    // Use IR camera
 boolean medFilter = false;  // Use a median filter on the red channel
 
 void setup() {
-  size(1280, 520);  // double wide to show thresholding
+  size(1280, 500);  // double wide to show thresholding
   
   // Initialize the kinect and video
   kinect = new Kinect(this);
@@ -77,10 +77,14 @@ void draw() {
 **/
 PImage redThreshold(PImage img, int threshold){
   img.loadPixels();
+  
+  // Step through every pixel and see if the redness > threshold
   for (int i = 0; i < img.width*img.height; i += 1) {
     if (calcRedVal(img.pixels[i]) >= threshold) { 
+      // Set pixel to white
       img.pixels[i] = color(255, 255, 255);
     } else {
+      // Set pixel to black
       img.pixels[i] = color(0, 0, 0);
     }
   }
@@ -109,15 +113,19 @@ float calcRedVal(color c) {
 PImage medianFilter(PImage img, int size) { 
   img.loadPixels();
   PImage temp;
-  int[] tempPixels = img.get().pixels;//ew int[img.width*img.height];
+  int[] tempPixels = img.get().pixels;
   
+  // Step through every pixel in the image that is not a border pixel
   for(int y = size; y < img.height - size; y++) {
     for(int x = size; x < img.width - size; x++) {
+      // Get a block of pixels of size (2*size+1)^2 around each 
       temp = img.get(x-size, y-size, 2*size+1, 2*size+1);
+      // Find the median element
       tempPixels[y * img.width + x] = sort(temp.pixels)[(2*(2*size+1)-1) / 2];
     } 
   }
   
+  // Update the pixels in the image
   img.pixels = tempPixels;
   img.updatePixels();
   return img; 
@@ -138,7 +146,7 @@ void drawBlobsAndEdges(PImage img, boolean drawBlobs, boolean drawEdges)
   for (int n=0; n<blobDetector.getBlobNb(); n++) {
     b=blobDetector.getBlob(n);
     // Ignore all blobs that are less than 10% of image size
-    if (b!=null && b.w >= .1) {
+    if (b!=null && b.w >= .1 && b.h >= .1) {
       // Edges
       if (drawEdges) {
         strokeWeight(2);
